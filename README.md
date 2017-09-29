@@ -1,6 +1,6 @@
 ## Ultibo port of Ararat Synapse
 
-This is the Ultibo port of the Ararat Synapse synchronyous socket library, all features except SSL/TLS are available including serial port support.
+This is the Ultibo port of the Ararat Synapse synchronous socket library, all features except SSL/TLS are available including serial port support.
 
 A number of examples from the original Synapse download have been ported to Ultibo and can be found at:
 
@@ -12,7 +12,7 @@ A zip file containing the source plus examples and documentation of the latest r
 
 Below is the original README.txt from the Synapse download package.
 
-### Synapse - The synchronyous socket library.
+### Synapse - The synchronous socket library.
 
 File content:
 
