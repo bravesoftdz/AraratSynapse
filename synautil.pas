@@ -69,17 +69,21 @@ uses
 {$IFDEF MSWINDOWS}
   Windows,
 {$ELSE MSWINDOWS}
-  {$IFDEF FPC}
-    {$IFDEF OS2}
-    Dos, TZUtil,
-    {$ELSE OS2}
-    UnixUtil, Unix, BaseUnix,
-    {$ENDIF OS2}
-  {$ELSE FPC}
-    {$IFDEF POSIX}
-      Posix.Base, Posix.Time, Posix.SysTypes, Posix.SysTime, Posix.Stdio,
-    {$ELSE}
-      Libc,
+  {$IFDEF ULTIBO}
+    Ultibo,
+  {$ELSE} 
+    {$IFDEF FPC}
+      {$IFDEF OS2}
+      Dos, TZUtil,
+      {$ELSE OS2}
+      UnixUtil, Unix, BaseUnix,
+      {$ENDIF OS2}
+    {$ELSE FPC}
+      {$IFDEF POSIX}
+        Posix.Base, Posix.Time, Posix.SysTypes, Posix.SysTime, Posix.Stdio,
+      {$ELSE}
+        Libc,
+      {$ENDIF}
     {$ENDIF}
   {$ENDIF}
 {$ENDIF}
@@ -411,7 +415,7 @@ var
 {==============================================================================}
 
 function TimeZoneBias: integer;
-{$IFNDEF MSWINDOWS}
+{$IF NOT(DEFINED(MSWINDOWS)) and NOT(DEFINED(ULTIBO))}
 {$IFNDEF FPC}
 var
 {$IFDEF POSIX}
@@ -634,7 +638,7 @@ begin
   x := rpos(':', Value);
   if (x > 0) and ((Length(Value) - x) > 2) then
     Value := Copy(Value, 1, x + 2);
-  Value := ReplaceString(Value, ':', {$IFDEF COMPILER15_UP}FormatSettings.{$ENDIF}TimeSeparator);
+  Value := ReplaceString(Value, ':', {$IFDEF COMPILER15_UP}FormatSettings.{$ENDIF}{$IFDEF FPC}DefaultFormatSettings.{$ENDIF}TimeSeparator);
   Result := -1;
   try
     Result := StrToTime(Value);
@@ -773,7 +777,7 @@ end;
 {==============================================================================}
 
 function GetUTTime: TDateTime;
-{$IFDEF MSWINDOWS}
+{$IF DEFINED(MSWINDOWS) or DEFINED(ULTIBO)}
 {$IFNDEF FPC}
 var
   st: TSystemTime;
@@ -783,7 +787,7 @@ begin
 {$ELSE}
 var
   st: SysUtils.TSystemTime;
-  stw: Windows.TSystemTime;
+  stw: {$IFNDEF ULTIBO}Windows{$ELSE}Ultibo{$ENDIF}.TSystemTime;
 begin
   GetSystemTime(stw);
   st.Year := stw.wYear;
@@ -825,7 +829,7 @@ end;
 {==============================================================================}
 
 function SetUTTime(Newdt: TDateTime): Boolean;
-{$IFDEF MSWINDOWS}
+{$IF DEFINED(MSWINDOWS) or DEFINED(ULTIBO)}
 {$IFNDEF FPC}
 var
   st: TSystemTime;
@@ -835,7 +839,7 @@ begin
 {$ELSE}
 var
   st: SysUtils.TSystemTime;
-  stw: Windows.TSystemTime;
+  stw: {$IFNDEF ULTIBO}Windows{$ELSE}Ultibo{$ENDIF}.TSystemTime;
 begin
   DateTimeToSystemTime(newdt,st);
   stw.wYear := st.Year;
@@ -1978,11 +1982,11 @@ var
   bol:      PANSIChar;
   lng:      integer;
   s:        ANSIString;
-  BackStop: ANSIString;
+  //BackStop: ANSIString;
   eob1:     PANSIChar;
   eob2:     PANSIChar;
 begin
-  BackStop := '--'+ABoundary;
+  //BackStop := '--'+ABoundary;
   eob2     := nil;
   // Copying until Boundary will be reached
   while (APtr<AEtx) do
@@ -2118,7 +2122,7 @@ var
 begin
   for n :=  1 to 12 do
   begin
-    CustomMonthNames[n] := {$IFDEF COMPILER15_UP}FormatSettings.{$ENDIF}ShortMonthNames[n];
-    MyMonthNames[0, n] := {$IFDEF COMPILER15_UP}FormatSettings.{$ENDIF}ShortMonthNames[n];
+    CustomMonthNames[n] := {$IFDEF COMPILER15_UP}FormatSettings.{$ENDIF}{$IFDEF FPC}DefaultFormatSettings.{$ENDIF}ShortMonthNames[n];
+    MyMonthNames[0, n] := {$IFDEF COMPILER15_UP}FormatSettings.{$ENDIF}{$IFDEF FPC}DefaultFormatSettings.{$ENDIF}ShortMonthNames[n];
   end;
 end.

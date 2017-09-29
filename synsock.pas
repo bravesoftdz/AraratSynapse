@@ -62,17 +62,21 @@ unit synsock;
   {$IFDEF MSWINDOWS}
     {$I sswin32.inc}
   {$ELSE}
-    {$IFDEF WINCE}
-      {$I sswin32.inc}  //not complete yet!
-    {$ELSE}
-      {$IFDEF FPC}
-       {$IFDEF OS2}
-         {$I ssos2ws1.inc}
-       {$ELSE OS2}
-        {$I ssfpc.inc}
-       {$ENDIF OS2}
+    {$IFDEF ULTIBO}
+      {$I ssultibo.inc}
+    {$ELSE} 
+      {$IFDEF WINCE}
+        {$I sswin32.inc}  //not complete yet!
       {$ELSE}
-        {$I sslinux.inc}
+        {$IFDEF FPC}
+         {$IFDEF OS2}
+           {$I ssos2ws1.inc}
+         {$ELSE OS2}
+          {$I ssfpc.inc}
+         {$ENDIF OS2}
+        {$ELSE}
+          {$I sslinux.inc}
+        {$ENDIF}
       {$ENDIF}
     {$ENDIF}
   {$ENDIF}

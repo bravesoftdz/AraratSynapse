@@ -47,6 +47,10 @@
 Routines for help with debugging of events on the Sockets.
 }
 
+{$IFDEF FPC}
+  {$mode delphi}
+{$endif}
+
 {$IFDEF UNICODE}
   {$WARN IMPLICIT_STRING_CAST OFF}
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}

@@ -1091,6 +1091,8 @@ type
    This class implementing datagram based communication instead default stream
    based communication style.}
   TDgramBlockSocket = class(TSocksBlockSocket)
+  protected
+    FUseConnect: Boolean;
   public
     {:Fill @link(TBlockSocket.RemoteSin) structure. This address is used for
      sending data.}
@@ -1101,6 +1103,9 @@ type
 
     {:Silently redirected to @link(TBlockSocket.RecvBufferFrom).}
     function RecvBuffer(Buffer: TMemory; Length: Integer): Integer; override;
+    
+    {:Specify if connect should called on the underlying socket.}
+    property UseConnect: Boolean read FUseConnect Write FUseConnect;
   end;
 
   {:@abstract(Implementation of UDP socket.)
@@ -3545,6 +3550,12 @@ procedure TDgramBlockSocket.Connect(IP, Port: string);
 begin
   SetRemoteSin(IP, Port);
   InternalCreateSocket(FRemoteSin);
+  if UseConnect then
+  begin
+    SockCheck(synsock.Connect(FSocket, FRemoteSin));
+    if FLastError = 0 then
+      GetSins;
+  end;    
   FBuffer := '';
   DoStatus(HR_Connect, IP + ':' + Port);
 end;

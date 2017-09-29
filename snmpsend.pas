@@ -1157,7 +1157,8 @@ function SNMPGetTable(const BaseOID, Community, SNMPHost: AnsiString; const Valu
 var
   OID: AnsiString;
   s: AnsiString;
-  col,row: String;
+  //col: String;
+  row: String;
   x: integer;
   SNMPSend: TSNMPSend;
   RowList: TStringList;
@@ -1173,7 +1174,8 @@ begin
       if Pos(BaseOID, OID) <> 1 then
           break;
       row := separateright(oid, baseoid + '.');
-      col := fetch(row, '.');
+      //col := fetch(row, '.');
+      fetch(row, '.');
 
       if IsBinaryString(s) then
         s := StrToHex(s);
