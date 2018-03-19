@@ -1792,52 +1792,52 @@ end;
 {$ELSE}
 procedure TBlockSerial.SetCommState;
 var
-  BaudRate: LongWord;
-  DataBits: LongWord;
-  StopBits: LongWord;
-  Parity: LongWord;
-  FlowControl: LongWord;
   ResultCode: LongWord;
+  Properties: TSerialProperties;
 begin
+  FillChar(Properties, SizeOf(TSerialProperties), 0);
+  
   // Baud Rate
-  BaudRate := DCB.BaudRate;
+  Properties.BaudRate := DCB.BaudRate;
   
   // Data bits
-  DataBits := SERIAL_DATA_8BIT;
+  Properties.DataBits := SERIAL_DATA_8BIT;
   case DCB.ByteSize of
-    7: DataBits := SERIAL_DATA_7BIT;
-    6: DataBits := SERIAL_DATA_6BIT;
-    5: DataBits := SERIAL_DATA_5BIT;
+    7: Properties.DataBits := SERIAL_DATA_7BIT;
+    6: Properties.DataBits := SERIAL_DATA_6BIT;
+    5: Properties.DataBits := SERIAL_DATA_5BIT;
   end;
 
   // Stop Bits
-  StopBits := SERIAL_STOP_1BIT;
+  Properties.StopBits := SERIAL_STOP_1BIT;
   case DCB.StopBits of
-    2: StopBits := SERIAL_STOP_2BIT;
-    1: StopBits := SERIAL_STOP_1BIT5;
+    2: Properties.StopBits := SERIAL_STOP_2BIT;
+    1: Properties.StopBits := SERIAL_STOP_1BIT5;
   end;
   
   // Parity
-  Parity := SERIAL_PARITY_NONE;
+  Properties.Parity := SERIAL_PARITY_NONE;
   case DCB.Parity of
-    1: Parity := SERIAL_PARITY_ODD;
-    2: Parity := SERIAL_PARITY_EVEN;
-    3: Parity := SERIAL_PARITY_MARK;
-    4: Parity := SERIAL_PARITY_SPACE;
+    1: Properties.Parity := SERIAL_PARITY_ODD;
+    2: Properties.Parity := SERIAL_PARITY_EVEN;
+    3: Properties.Parity := SERIAL_PARITY_MARK;
+    4: Properties.Parity := SERIAL_PARITY_SPACE;
   end;
   
   // Flow Control
-  FlowControl := SERIAL_FLOW_NONE;
+  Properties.FlowControl := SERIAL_FLOW_NONE;
   if (DCB.Flags and dcb_RtsControlHandshake) <> 0 then
-    FlowControl := SERIAL_FLOW_RTS_CTS
+    Properties.FlowControl := SERIAL_FLOW_RTS_CTS
   else if (DCB.Flags and dcb_DtrControlHandshake) <> 0 then 
-    FlowControl := SERIAL_FLOW_DSR_DTR;
+    Properties.FlowControl := SERIAL_FLOW_DSR_DTR;
   
-  // Close device
-  SerialDeviceClose(FSerialDevice);
+  // Receive and Send Buffer
+  Properties.ReceiveDepth := FRecvBuffer;
+  Properties.TransmitDepth := FSendBuffer;
   
-  // Open device
-  ResultCode := SerialDeviceOpen(FSerialDevice, BaudRate, DataBits, StopBits, Parity, FlowControl, FRecvBuffer, FSendBuffer);  
+  // Set device properties
+  ResultCode := SerialDeviceSetProperties(FSerialDevice, @Properties);
+  
   SetLastError(ResultCode);
   if ResultCode <> ERROR_SUCCESS then
     SerialCheck(sErr)
@@ -1978,7 +1978,10 @@ begin
   fpioctl(FHandle, TIOCMSET, @FModemWord);
   {$ENDIF}
 {$ELSE}
-  //To Do //Ultibo //SerialDeviceSetStatus to be implemented
+  if Value then
+    SerialDeviceSetStatus(FSerialDevice, SerialDeviceGetStatus(FSerialDevice) or SERIAL_STATUS_DTR)
+  else
+    SerialDeviceSetStatus(FSerialDevice, SerialDeviceGetStatus(FSerialDevice) and not(SERIAL_STATUS_DTR));
 {$ENDIF}    
 {$ELSE}
   if Value then
@@ -2017,7 +2020,10 @@ begin
   fpioctl(FHandle, TIOCMSET, @FModemWord);
   {$ENDIF}
 {$ELSE}
-  //To Do //Ultibo //SerialDeviceSetStatus to be implemented
+  if Value then
+    SerialDeviceSetStatus(FSerialDevice, SerialDeviceGetStatus(FSerialDevice) or SERIAL_STATUS_RTS)
+  else
+    SerialDeviceSetStatus(FSerialDevice, SerialDeviceGetStatus(FSerialDevice) and not(SERIAL_STATUS_RTS));
 {$ENDIF}    
 {$ELSE}
   if Value then
@@ -2125,37 +2131,15 @@ end;
 {$ELSE}
 function TBlockSerial.CanRead(Timeout: integer): boolean;
 var
-  Start: Int64;
-  Current: Int64;
+  Count: LongWord;
 begin
   Result := WaitingData > 0;
   if Timeout <> 0 then
   begin
     if Timeout = -1 then
-    begin
-      while True do
-      begin
-        Result := WaitingData > 0;
-        if Result then Break;
-      
-        Sleep(0);
-      end;
-    end
+      Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_RECEIVE, INFINITE, Count) = ERROR_SUCCESS
     else
-    begin
-      Start := GetTickCount64;
-      Current := Start;
-      
-      while Current < (Start + Timeout) do
-      begin
-        Result := WaitingData > 0;
-        if Result then Break;
-        
-        Sleep(0);
-        Current := GetTickCount64;
-      end;
-    end;  
-    //To Do //Ultibo //SerialDeviceWait to be implemented
+      Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_RECEIVE, Timeout, Count) = ERROR_SUCCESS;
   end;  
   if Result then
     DoStatus(HR_CanRead, '');
@@ -2207,37 +2191,15 @@ end;
 {$ELSE}
 function TBlockSerial.CanWrite(Timeout: integer): boolean;
 var
-  Start: Int64;
-  Current: Int64;
+  Count: LongWord;
 begin
   Result := SendingData < FSendBuffer;
   if Timeout <> 0 then
   begin
     if Timeout = -1 then
-    begin
-      while True do
-      begin
-        Result := SendingData < FSendBuffer;
-        if Result then Break;
-      
-        Sleep(0);
-      end;
-    end
+      Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_TRANSMIT, INFINITE, Count) = ERROR_SUCCESS
     else
-    begin
-      Start := GetTickCount64;
-      Current := Start;
-      
-      while Current < (Start + Timeout) do
-      begin
-        Result := SendingData < FSendBuffer;
-        if Result then Break;
-        
-        Sleep(0);
-        Current := GetTickCount64;
-      end;
-    end;  
-    //To Do //Ultibo //SerialDeviceWait to be implemented
+      Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_TRANSMIT, Timeout, Count) = ERROR_SUCCESS;
   end;  
   if Result then
     DoStatus(HR_CanWrite, '');
@@ -2319,7 +2281,6 @@ begin
   begin
    Sleep(0);
   end;
-  //To Do //Ultibo //SerialDeviceWait to be implemented
 {$ENDIF}    
 {$ELSE}
   SetSynaError(sOK);
