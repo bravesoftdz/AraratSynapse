@@ -2134,12 +2134,15 @@ var
   Count: LongWord;
 begin
   Result := WaitingData > 0;
-  if Timeout <> 0 then
+  if not Result then
   begin
-    if Timeout = -1 then
-      Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_RECEIVE, INFINITE, Count) = ERROR_SUCCESS
-    else
-      Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_RECEIVE, Timeout, Count) = ERROR_SUCCESS;
+    if Timeout <> 0 then
+    begin
+      if Timeout = -1 then
+        Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_RECEIVE, INFINITE, Count) = ERROR_SUCCESS
+      else
+        Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_RECEIVE, Timeout, Count) = ERROR_SUCCESS;
+    end;  
   end;  
   if Result then
     DoStatus(HR_CanRead, '');
@@ -2194,12 +2197,15 @@ var
   Count: LongWord;
 begin
   Result := SendingData < FSendBuffer;
-  if Timeout <> 0 then
+  if not Result then
   begin
-    if Timeout = -1 then
-      Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_TRANSMIT, INFINITE, Count) = ERROR_SUCCESS
-    else
-      Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_TRANSMIT, Timeout, Count) = ERROR_SUCCESS;
+    if Timeout <> 0 then
+    begin
+      if Timeout = -1 then
+        Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_TRANSMIT, INFINITE, Count) = ERROR_SUCCESS
+      else
+        Result := SerialDeviceWait(FSerialDevice, SERIAL_WAIT_TRANSMIT, Timeout, Count) = ERROR_SUCCESS;
+    end;  
   end;  
   if Result then
     DoStatus(HR_CanWrite, '');
