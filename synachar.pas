@@ -84,6 +84,9 @@ uses
 {$ELSE}
   Windows,
 {$ENDIF}
+{$IFDEF ULTIBO}
+  Locale,
+{$ENDIF}
   SysUtils,
   synautil, synacode, synaicnv;
 
@@ -1496,7 +1499,7 @@ begin
 end;
 
 {==============================================================================}
-{$IFNDEF MSWINDOWS}
+{$IF NOT(DEFINED(MSWINDOWS)) and NOT(DEFINED(ULTIBO))}
 
 function GetCurCP: TMimeChar;
 begin

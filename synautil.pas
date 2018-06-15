@@ -787,7 +787,7 @@ begin
 {$ELSE}
 var
   st: SysUtils.TSystemTime;
-  stw: {$IFNDEF ULTIBO}Windows{$ELSE}Ultibo{$ENDIF}.TSystemTime;
+  stw: {$IFNDEF ULTIBO}Windows.TSystemTime{$ELSE}Ultibo.SYSTEMTIME{$ENDIF};
 begin
   GetSystemTime(stw);
   st.Year := stw.wYear;
@@ -839,7 +839,7 @@ begin
 {$ELSE}
 var
   st: SysUtils.TSystemTime;
-  stw: {$IFNDEF ULTIBO}Windows{$ELSE}Ultibo{$ENDIF}.TSystemTime;
+  stw: {$IFNDEF ULTIBO}Windows.TSystemTime{$ELSE}Ultibo.SYSTEMTIME{$ENDIF};
 begin
   DateTimeToSystemTime(newdt,st);
   stw.wYear := st.Year;

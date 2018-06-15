@@ -1613,7 +1613,9 @@ var
   x: integer;
   buf: TMemory;
 {$IFNDEF MSWINDOWS}
+{$IFNDEF ULTIBO}  
   timeval: TTimeval;
+{$ENDIF}
 {$ENDIF}
 begin
   case value.Option of
@@ -1667,10 +1669,16 @@ begin
         synsock.SetSockOpt(FSocket, integer(SOL_SOCKET), integer(SO_RCVTIMEO),
           buf, SizeOf(Value.Value));
           {$ELSE}
+            {$IFDEF ULTIBO}
+        buf := @Value.Value;
+        synsock.SetSockOpt(FSocket, integer(SOL_SOCKET), integer(SO_RCVTIMEO),
+          buf, SizeOf(Value.Value));
+            {$ELSE}
         timeval.tv_sec:=Value.Value div 1000;
         timeval.tv_usec:=(Value.Value mod 1000) * 1000;
         synsock.SetSockOpt(FSocket, integer(SOL_SOCKET), integer(SO_RCVTIMEO),
           @timeval, SizeOf(timeval));
+            {$ENDIF}
           {$ENDIF}
         {$ENDIF}
       end;
@@ -1684,10 +1692,16 @@ begin
         synsock.SetSockOpt(FSocket, integer(SOL_SOCKET), integer(SO_SNDTIMEO),
           buf, SizeOf(Value.Value));
           {$ELSE}
+            {$IFDEF ULTIBO}
+        buf := @Value.Value;
+        synsock.SetSockOpt(FSocket, integer(SOL_SOCKET), integer(SO_SNDTIMEO),
+          buf, SizeOf(Value.Value));
+            {$ELSE}
         timeval.tv_sec:=Value.Value div 1000;
         timeval.tv_usec:=(Value.Value mod 1000) * 1000;
         synsock.SetSockOpt(FSocket, integer(SOL_SOCKET), integer(SO_SNDTIMEO),
           @timeval, SizeOf(timeval));
+            {$ENDIF}
           {$ENDIF}
         {$ENDIF}
       end;
